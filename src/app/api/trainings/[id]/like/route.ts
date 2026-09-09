@@ -1,0 +1,4 @@
+import { NextResponse } from "next/server";
+import { db } from "@/lib/db";
+import { getCurrentUser } from "@/lib/auth";
+export async function POST(_: Request, { params }: { params: Promise<{ id: string }> }) { const user = await getCurrentUser(); if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 }); const trainingPostId = (await params).id; const existing = await db.like.findUnique({ where: { userId_trainingPostId: { userId: user.id, trainingPostId } } }); if (existing) { await db.like.delete({ where: { id: existing.id } }); return NextResponse.json({ liked: false }); } await db.like.create({ data: { userId: user.id, trainingPostId } }); return NextResponse.json({ liked: true }); }

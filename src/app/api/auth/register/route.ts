@@ -1,0 +1,7 @@
+import { NextResponse } from "next/server";
+import bcrypt from "bcryptjs";
+import { z } from "zod";
+import { db } from "@/lib/db";
+import { createSession } from "@/lib/auth";
+const schema = z.object({ email: z.string().email(), username: z.string().min(3).max(24).regex(/^[a-zA-Z0-9_]+$/), firstName: z.string().min(1).max(50), lastName: z.string().min(1).max(50), password: z.string().min(8).max(72) });
+export async function POST(request: Request) { try { const parsed = schema.safeParse(await request.json()); if (!parsed.success) return NextResponse.json({ error: "Invalid registration details" }, { status: 400 }); const { email, username, firstName, lastName, password } = parsed.data; const exists = await db.user.findFirst({ where: { OR: [{ email }, { username }] } }); if (exists) return NextResponse.json({ error: "Email or username is already in use" }, { status: 409 }); const user = await db.user.create({ data: { email, username, firstName, lastName, passwordHash: await bcrypt.hash(password, 12), role: "USER" }, select: { id: true, username: true, role: true } }); await createSession(user.id, user.role); return NextResponse.json({ user }, { status: 201 }); } catch (error) { console.error("Registration failed:", error); return NextResponse.json({ error: "Database unavailable. Configure DATABASE_URL and start PostgreSQL." }, { status: 503 }); } }

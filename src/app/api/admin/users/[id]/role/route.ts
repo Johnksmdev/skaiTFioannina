@@ -1,0 +1,6 @@
+import { NextResponse } from "next/server";
+import { z } from "zod";
+import { db } from "@/lib/db";
+import { requireRole } from "@/lib/auth";
+const schema = z.object({ role: z.enum(["USER", "VERIFIED_ATHLETE", "COACH", "ADMIN", "BANNED"]) });
+export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) { const admin = await requireRole("ADMIN"); if (!admin) return NextResponse.json({ error: "Forbidden" }, { status: 403 }); const targetId = (await params).id; if (targetId === admin.id) return NextResponse.json({ error: "The active admin account cannot change its own role" }, { status: 400 }); const parsed = schema.safeParse(await request.json()); if (!parsed.success) return NextResponse.json({ error: "Invalid role" }, { status: 400 }); const target = await db.user.findUnique({ where: { id: targetId } }); if (!target) return NextResponse.json({ error: "User not found" }, { status: 404 }); const [user] = await db.$transaction([db.user.update({ where: { id: targetId }, data: { role: parsed.data.role } }), db.roleChangeAuditLog.create({ data: { adminId: admin.id, targetUserId: target.id, previousRole: target.role, newRole: parsed.data.role } })]); return NextResponse.json({ user: { id: user.id, role: user.role } }); }

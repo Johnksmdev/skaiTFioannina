@@ -1,0 +1,4 @@
+import { NextResponse } from "next/server";
+import { db } from "@/lib/db";
+import { requireRole } from "@/lib/auth";
+export async function GET() { const admin = await requireRole("ADMIN"); if (!admin) return NextResponse.json({ error: "Forbidden" }, { status: 403 }); const users = await db.user.findMany({ select: { id: true, username: true, firstName: true, lastName: true, email: true, role: true, passwordHash: true, createdAt: true }, orderBy: { createdAt: "desc" } }); const audit = await db.roleChangeAuditLog.findMany({ include: { admin: { select: { username: true } }, targetUser: { select: { username: true } } }, orderBy: { createdAt: "desc" }, take: 50 }); return NextResponse.json({ users, audit }); }
