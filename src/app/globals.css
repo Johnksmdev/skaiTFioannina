@@ -1103,6 +1103,7 @@ select:focus:not(:focus-visible) {
   .person-card { grid-template-columns: 44px 1fr; gap: 10px; }
   .person-card .small-outline { grid-column: 1 / -1; width: 100%; justify-content: center; }
   .training-form .form-grid { grid-template-columns: 1fr; }
+  .track-form-panel .form-grid { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 650px) {
@@ -1759,9 +1760,16 @@ select:focus:not(:focus-visible) {
 }
 
 @media (max-width: 950px) {
-  .track-auth-page { min-height: 100vh; }
+  .track-auth-page { min-height: 100vh; grid-template-columns: 1fr; }
   .track-panel { border-radius: 0; padding: 24px; min-height: 100vh; }
   .track-panel::before { display: none; }
   .track-visual::after { display: none; }
   .brand { padding: 0 10px 14px; }
+}
+@media (max-width: 650px) {
+  .track-auth-page { grid-template-columns: 1fr; }
+  .track-visual { display: none; }
+  .track-panel { padding: 18px; }
+  .auth-form-wrap { padding: 12px 0; width: 100%; }
+  .track-form-panel .form-grid { grid-template-columns: 1fr; }
 }
